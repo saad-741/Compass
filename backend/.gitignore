@@ -1,0 +1,27 @@
+# Python / Virtual Environments
+__pycache__/
+.Python
+env/
+venv/ 
+env.bak/
+venv.bak/
+.venv/
+
+# Environment Variables & Credentials
+.env
+.env.local
+.env.*.local
+
+# IDEs & Code Editors
+.vscode/
+ 
+# Project / Application Specific
+temp/
+*.log
+*.sqlite3
+*.db
+
+# Vector Databases / Storage Cache
+chroma_db/
+.chroma/
+ 

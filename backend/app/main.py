@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.api.ingest import router as ingest_router
+from app.api.vectorstore import router as vectorstore_router
+from app.api.qa import router as qa_router
+from app.api.endpoints import router as api_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -16,6 +20,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register main API routes
+app.include_router(api_router)
+
+# Register dev/testing routes
+app.include_router(ingest_router)
+app.include_router(vectorstore_router)
+app.include_router(qa_router)
 
 @app.get("/", tags=["Health"])
 async def root():
