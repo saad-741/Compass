@@ -9,6 +9,10 @@ venv.bak/
 
 # Environment Variables & Credentials
 .env
+backend/.env
+.env
+*.env
+backend/.env
 .env.local
 .env.*.local
 
