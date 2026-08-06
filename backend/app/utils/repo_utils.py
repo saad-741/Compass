@@ -6,10 +6,7 @@ GITHUB_URL_PATTERN = re.compile(
 )
 
 def validate_and_parse_github_url(url: str) -> tuple[str, str]:
-    """
-    Validates a GitHub repository URL and extracts (owner, repo).
-    Raises ValueError if the URL format is invalid.
-    """
+     
     clean_url = url.strip().rstrip("/")
     match = GITHUB_URL_PATTERN.match(clean_url)
     

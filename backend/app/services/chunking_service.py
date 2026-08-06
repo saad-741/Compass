@@ -4,7 +4,6 @@ from typing import Optional
 from pydantic import BaseModel
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 
-# Map file extensions to LangChain supported languages
 EXTENSION_TO_LANGUAGE = {
     ".py": Language.PYTHON,
     ".js": Language.JS,
@@ -18,6 +17,7 @@ EXTENSION_TO_LANGUAGE = {
     ".md": Language.MARKDOWN,
 }
 
+
 class CodeChunk(BaseModel):
     chunk_id: str
     content: str
@@ -27,36 +27,32 @@ class CodeChunk(BaseModel):
     start_line: int
     end_line: int
 
+
 class ChunkingService:
 
     @staticmethod
     def _detect_language(file_extension: str) -> Optional[Language]:
-        """Maps file extension to LangChain Language enum."""
         return EXTENSION_TO_LANGUAGE.get(file_extension.lower())
 
     @staticmethod
-    def _calculate_line_numbers(full_content: str, chunk_content: str, search_start_index: int = 0) -> tuple[int, int, int]:
-        """
-        Calculates 1-based start_line and end_line for a chunk within the full text.
-        Returns (start_line, end_line, new_search_index).
-        """
+    def _calculate_line_numbers(
+        full_content: str, chunk_content: str, search_start_index: int = 0
+    ) -> tuple[int, int, int]:
+
+        # Calculates 1-based start_line and end_line for a chunk within the full text.
         start_char_idx = full_content.find(chunk_content, search_start_index)
         if start_char_idx == -1:
-            # Fallback if exact match isn't found sequentially
             start_char_idx = search_start_index
 
-        start_line = full_content.count('\n', 0, start_char_idx) + 1
-        chunk_lines = chunk_content.count('\n')
+        start_line = full_content.count("\n", 0, start_char_idx) + 1
+        chunk_lines = chunk_content.count("\n")
         end_line = start_line + chunk_lines
 
         return start_line, end_line, start_char_idx + len(chunk_content)
 
     @staticmethod
     def parse_and_chunk_file(file_path: Path, repo_root: Path) -> list[CodeChunk]:
-        """
-        Reads a single file, applies structural or recursive chunking,
-        extracts line ranges, and constructs enriched CodeChunk objects.
-        """
+
         relative_path = str(file_path.relative_to(repo_root)).replace("\\", "/")
         extension = file_path.suffix.lower()
         language_enum = ChunkingService._detect_language(extension)
@@ -71,17 +67,13 @@ class ChunkingService:
         if not full_content.strip():
             return []
 
-        # Configure splitter: Prefer AST/language syntax boundaries if supported
         if language_enum:
             splitter = RecursiveCharacterTextSplitter.from_language(
-                language=language_enum,
-                chunk_size=1000,
-                chunk_overlap=150
+                language=language_enum, chunk_size=1000, chunk_overlap=150
             )
         else:
             splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000,
-                chunk_overlap=150
+                chunk_size=1000, chunk_overlap=150
             )
 
         raw_chunks = splitter.split_text(full_content)
@@ -95,15 +87,22 @@ class ChunkingService:
             start_line, end_line, search_idx = ChunkingService._calculate_line_numbers(
                 full_content=full_content,
                 chunk_content=chunk_text,
-                search_start_index=search_idx
+                search_start_index=search_idx,
             )
 
-            # Generate unique chunk ID (Step 5)
-            chunk_id = f"{relative_path}::{start_line}-{end_line}::{uuid.uuid4().hex[:8]}"
+            chunk_id = (
+                f"{relative_path}::{start_line}-{end_line}::{uuid.uuid4().hex[:8]}"
+            )
 
-            # Detect top symbol (e.g. function/class declaration) if present in first line
             first_line = chunk_text.strip().split("\n")[0]
-            symbol = first_line[:60] if any(kw in first_line for kw in ["def ", "class ", "function ", "const ", "interface "]) else None
+            symbol = (
+                first_line[:60]
+                if any(
+                    kw in first_line
+                    for kw in ["def ", "class ", "function ", "const ", "interface "]
+                )
+                else None
+            )
 
             code_chunks.append(
                 CodeChunk(
@@ -113,17 +112,17 @@ class ChunkingService:
                     language=language_str,
                     symbol=symbol,
                     start_line=start_line,
-                    end_line=end_line
+                    end_line=end_line,
                 )
             )
 
         return code_chunks
 
     @classmethod
-    def process_repository(cls, file_paths: list[Path], repo_root: Path) -> list[CodeChunk]:
-        """
-        Iterates over all filtered repository files and processes them into chunks.
-        """
+    def process_repository(
+        cls, file_paths: list[Path], repo_root: Path
+    ) -> list[CodeChunk]:
+
         all_chunks: list[CodeChunk] = []
         for file_path in file_paths:
             chunks = cls.parse_and_chunk_file(file_path, repo_root)

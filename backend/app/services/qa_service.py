@@ -36,16 +36,9 @@ class QAService:
         query: str, 
         top_k: int = 6
     ) -> QAResponse:
-        """
-        Executes the full Phase 5 RAG Pipeline:
-        1. Query embedding + ChromaDB retrieval (Top 6 chunks).
-        2. Format chunks into context string.
-        3. Pass prompt to Groq (llama-3.3-70b-versatile).
-        4. Return answer + citations payload.
-        """
+        
         collection_name = VectorStoreService.sanitize_collection_name(repo_owner, repo_name)
 
-        # Step 2 & 3: Retrieve top chunks (Top 6)
         retrieved_chunks = VectorStoreService.similarity_search(
             collection_name=collection_name,
             query=query,
@@ -58,7 +51,6 @@ class QAService:
                 sources=[]
             )
 
-        # Build context string and deduplicate source citations
         context_blocks = []
         sources: list[SourceCitation] = []
         seen_sources = set()
@@ -92,11 +84,9 @@ class QAService:
 
         context_str = "\n".join(context_blocks)
 
-        # Step 4: Construct system prompt with context
         formatted_system_prompt = SYSTEM_PROMPT.format(context_str=context_str)
         formatted_user_prompt = USER_PROMPT_TEMPLATE.format(query=query)
 
-        # Step 5: Call Groq API with Llama 3.3 70B Versatile
         client = cls.get_groq_client()
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -104,13 +94,12 @@ class QAService:
                 {"role": "system", "content": formatted_system_prompt},
                 {"role": "user", "content": formatted_user_prompt}
             ],
-            temperature=0.2,  # Low temperature for grounded factual answers
+            temperature=0.2,   
             max_tokens=2048
         )
 
         answer_text = completion.choices[0].message.content
 
-        # Step 6: Return formatted response + structured citations
         return QAResponse(
             answer=answer_text,
             sources=sources

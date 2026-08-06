@@ -10,14 +10,7 @@ router = APIRouter(prefix="/api", tags=["Ingestion"])
 # 2. Use @router.post (NOT @APIRouter().post)
 @router.post("/ingest/test", response_model=IngestInspectResponse)
 async def test_repository_ingestion(payload: IngestRequest):
-    """
-    Ingestion Endpoint (Phase 2 Validation):
-    1. Validates GitHub URL.
-    2. Shallow clones repo to temporary directory.
-    3. Validates total size limit (100 MB) & file count (500 files max).
-    4. Filters supported code files.
-    5. Cleans up temporary directory after validation.
-    """
+    
     # Validate URL
     try:
         owner, repo_name = validate_and_parse_github_url(payload.repo_url)
@@ -30,11 +23,9 @@ async def test_repository_ingestion(payload: IngestRequest):
     except IngestionError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
-    try:
-        # Filter and Validate Limits
+    try: 
         valid_files = RepoIngestionService.validate_and_filter_repository(repo_path)
-        
-        # Prepare inspect output
+         
         file_summaries = [
             FileSummary(
                 relative_path=str(f.relative_to(repo_path)).replace("\\", "/"),
@@ -55,21 +46,13 @@ async def test_repository_ingestion(payload: IngestRequest):
     except IngestionError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
-    finally:
-        # Clean up temporary directory
+    finally: 
         RepoIngestionService.cleanup_repository(repo_path)
 
 
 @router.post("/chunk/test", response_model=ChunkInspectResponse)
 async def test_repository_chunking(payload: IngestRequest):
-    """
-    Phase 3 Endpoint:
-    1. Clones repository.
-    2. Filters valid code files.
-    3. Structural chunking per language.
-    4. Extracts line ranges, symbol names, and IDs.
-    5. Cleans up temporary repo files.
-    """
+    
     try:
         owner, repo_name = validate_and_parse_github_url(payload.repo_url)
     except ValueError as err:

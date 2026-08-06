@@ -17,9 +17,8 @@ router = APIRouter(prefix="/api", tags=["API Layer"])
 # Endpoint 1: POST /api/ingest
 @router.post("/ingest", response_model=IngestTaskResponse, status_code=status.HTTP_202_ACCEPTED)
 async def ingest_repository(payload: IngestRequest, background_tasks: BackgroundTasks):
-    """
-    Endpoint 1: Initiates repository ingestion in the background and returns a task_id.
-    """
+
+    # Initiates repos ingestion in the background and returns a task_id.  
     task_id = TaskManager.create_task()
     background_tasks.add_task(process_repository_task, task_id, payload.repo_url)
     return IngestTaskResponse(task_id=task_id)
@@ -28,9 +27,8 @@ async def ingest_repository(payload: IngestRequest, background_tasks: Background
 # Endpoint 2: GET /api/status/{task_id}
 @router.get("/status/{task_id}", response_model=StatusResponse)
 async def get_task_status(task_id: str):
-    """
-    Endpoint 2: Returns the ingestion progress status and ready state.
-    """
+
+    # Returns the ingestion progress status and ready state.
     task_info = TaskManager.get_task(task_id)
     if not task_info:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task ID not found")
@@ -47,9 +45,7 @@ async def get_task_status(task_id: str):
 # Endpoint 3: POST /api/chat
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_repository(payload: ChatRequest):
-    """
-    Endpoint 3: Queries the repository using repository_id and question. Returns Markdown answer + citations.
-    """
+
     repo_meta = TaskManager.get_repository(payload.repository_id)
     if not repo_meta:
         raise HTTPException(
@@ -86,9 +82,8 @@ async def chat_with_repository(payload: ChatRequest):
 # Endpoint 4: GET /api/repository/{id}
 @router.get("/repository/{repository_id}", response_model=RepositoryDetailsResponse)
 async def get_repository_details(repository_id: str):
-    """
-    Endpoint 4: Returns detailed summary metadata for an ingested repository.
-    """
+
+    # Returns metadata for an ingested repo.
     repo_meta = TaskManager.get_repository(repository_id)
     if not repo_meta:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Repository ID not found")

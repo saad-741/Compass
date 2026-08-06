@@ -7,13 +7,7 @@ router = APIRouter(prefix="/api/chat", tags=["AI Q&A"])
 
 @router.post("/query", response_model=QuestionResponse)
 async def query_repository(payload: QueryRequest):
-    """
-    Phase 5 Endpoint:
-    1. Validates repository URL and query.
-    2. Retrieves top 6 relevant code chunks from ChromaDB.
-    3. Prompts Groq (llama-3.3-70b-versatile) with context & citations rules.
-    4. Returns grounded Markdown answer + structured citations.
-    """
+    
     try:
         owner, repo_name = validate_and_parse_github_url(payload.repo_url)
     except ValueError as err:

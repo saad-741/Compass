@@ -15,15 +15,7 @@ router = APIRouter(prefix="/api/vectorstore", tags=["Vector Store"])
 
 @router.post("/index", response_model=VectorStoreInspectResponse)
 async def index_repository(payload: IngestRequest):
-    """
-    Phase 4 Indexing Endpoint:
-    1. Shallow clones repository.
-    2. Filters supported files.
-    3. Structural code chunking.
-    4. Generates embeddings via sentence-transformers (all-MiniLM-L6-v2).
-    5. Stores chunks, embeddings, and metadata in ChromaDB.
-    6. Cleans up temporary files.
-    """
+    
     try:
         owner, repo_name = validate_and_parse_github_url(payload.repo_url)
     except ValueError as err:
@@ -58,10 +50,7 @@ async def index_repository(payload: IngestRequest):
 
 @router.post("/search", response_model=SearchResponse)
 async def search_vectorstore(payload: QueryRequest):
-    """
-    Phase 4 Verification Endpoint (Step 5):
-    Executes similarity search on indexed ChromaDB vectors.
-    """
+    
     try:
         owner, repo_name = validate_and_parse_github_url(payload.repo_url)
     except ValueError as err:
