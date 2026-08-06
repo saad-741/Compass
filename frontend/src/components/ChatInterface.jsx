@@ -9,8 +9,8 @@ import { sendChatMessage } from "../services/api";
 
 export const ChatInterface = ({ isOpen, onClose, repoName, repositoryId }) => {
   const activeId = repositoryId || repoName;
-  const storageKey = `compass_chat_${activeId || 'default'}`;
- 
+  const storageKey = `compass_chat_${activeId || "default"}`;
+
   const [messages, setMessages] = useState(() => {
     if (!repoName) return [];
     const saved = localStorage.getItem(storageKey);
@@ -39,7 +39,6 @@ export const ChatInterface = ({ isOpen, onClose, repoName, repositoryId }) => {
     }
   }, [messages, activeId, storageKey]);
 
-  // Re-initialize message state if repository switches
   useEffect(() => {
     if (repoName) {
       const saved = localStorage.getItem(storageKey);
@@ -167,7 +166,7 @@ export const ChatInterface = ({ isOpen, onClose, repoName, repositoryId }) => {
                 key={i}
                 className={cn(
                   "flex flex-col",
-                  msg.role === "user" ? "items-end" : "items-start"
+                  msg.role === "user" ? "items-end" : "items-start",
                 )}
               >
                 <div
@@ -177,14 +176,15 @@ export const ChatInterface = ({ isOpen, onClose, repoName, repositoryId }) => {
                       ? "bg-[#5568fe] text-white prose-p:text-white prose-headings:text-white prose-strong:text-white"
                       : msg.role === "system"
                         ? "bg-red-950/40 text-red-400 border border-red-900/60"
-                        : "bg-zinc-950 text-zinc-200 border border-zinc-800"
+                        : "bg-zinc-950 text-zinc-200 border border-zinc-800",
                   )}
                 >
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
+                      // Changed from <p> to <div> to prevent invalid HTML nesting errors
                       p: ({ node, ...props }) => (
-                        <p
+                        <div
                           className="mb-3 last:mb-0 leading-relaxed text-sm md:text-base"
                           {...props}
                         />
@@ -284,3 +284,4 @@ export const ChatInterface = ({ isOpen, onClose, repoName, repositoryId }) => {
     </AnimatePresence>
   );
 };
+
